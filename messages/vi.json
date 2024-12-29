@@ -1,0 +1,20 @@
+{
+  "ErrorMessage": {
+    "invalidEmail": "Email không hợp lệ",
+    "required": "Trường này không được để trống",
+    "minmaxPassword": "Mật khẩu phải từ 6 đến 100 ký tự"
+  },
+  "Brand": {
+    "title": "Hệ thống quản lý cửa hàng",
+    "defaultTitle": "Hệ thống quản lý"
+  },
+  "Products": {
+    "title": "Sản phẩm",
+    "description": "Quản lý sản phẩm"
+  },
+  "Orders": {
+    "title": "Đơn hàng",
+    "description": "Quản lý đơn hàng"
+  }
+
+}

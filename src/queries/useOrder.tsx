@@ -1,0 +1,57 @@
+import orderApiRequest from '@/apiRequests/order'
+import { CreateOrderBodyType, UpdateOrderBodyType } from '@/schemaValidations/order.schema'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+
+export const useGetOrderListQuery = () => {
+  return useQuery({
+    queryKey: ['orders'],
+    queryFn: orderApiRequest.getListOrder
+  })
+}
+
+export const useGetOrderQuery = ({ id, enabled }: { id: number; enabled: boolean }) => {
+  return useQuery({
+    queryKey: ['orders', id],
+    queryFn: () => orderApiRequest.getOrder(id),
+    enabled
+  })
+}
+
+export const useAddOrderMutation = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (body: CreateOrderBodyType) => orderApiRequest.addOrder(body),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['orders']
+      })
+    }
+  })
+}
+
+export const useUpdateOrderMutation = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (body: UpdateOrderBodyType) => orderApiRequest.updateOrder(body),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['orders'],
+        exact: true
+      })
+    }
+  })
+}
+
+export const useDeleteOrderMutation = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: orderApiRequest.deleteOrder,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['orders']
+      })
+    }
+  })
+}

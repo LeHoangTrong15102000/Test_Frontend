@@ -1,0 +1,20 @@
+{
+  "ErrorMessage": {
+    "invalidEmail": "Invalid email",
+    "required": "This field is required",
+    "minmaxPassword": "Password must be between 6 and 100 characters"
+  },
+  "Brand": {
+    "title": "Manage System Store",
+    "defaultTitle": "Manage System"
+  },
+  "Products": {
+    "title": "Products",
+    "description": "Manage products"
+  },
+  "Orders": {
+    "title": "Orders",
+    "description": "Manage orders"
+  }
+  
+}
