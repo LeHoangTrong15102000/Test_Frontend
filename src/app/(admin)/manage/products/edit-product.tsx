@@ -109,7 +109,7 @@ export default function EditProduct({
                 render={({ field }) => (
                   <FormItem>
                     <div className='grid grid-cols-4 items-center justify-items-start gap-4'>
-                      <Label htmlFor='name'>Tên món ăn</Label>
+                      <Label htmlFor='name'>Tên sản phẩm</Label>
                       <div className='col-span-3 w-full space-y-2'>
                         <Input id='name' className='w-full' {...field} />
                         <FormMessage />
@@ -141,7 +141,7 @@ export default function EditProduct({
                     <div className='grid grid-cols-4 items-center justify-items-start gap-4'>
                       <Label htmlFor='cost'>Giá vốn sản phẩm</Label>
                       <div className='col-span-3 w-full space-y-2'>
-                        <Textarea id='cost' className='w-full' {...field} />
+                        <Input id='cost' className='w-full' {...field} type='number' />
                         <FormMessage />
                       </div>
                     </div>

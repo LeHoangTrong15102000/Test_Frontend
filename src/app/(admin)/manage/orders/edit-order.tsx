@@ -193,6 +193,21 @@ export default function EditOrder({
               />
               <FormField
                 control={form.control}
+                name='price_total'
+                render={({ field }) => (
+                  <FormItem>
+                    <div className='grid grid-cols-4 items-center justify-items-start gap-4'>
+                      <Label htmlFor='price_total'>Tổng giá bán</Label>
+                      <div className='col-span-3 w-full space-y-2'>
+                        <Input id='price_total' className='w-full' {...field} type='number' />
+                        <FormMessage />
+                      </div>
+                    </div>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
                 name='shipping_fee'
                 render={({ field }) => (
                   <FormItem>
@@ -231,8 +246,8 @@ export default function EditOrder({
                       <div className='col-span-3 w-full space-y-2'>
                         <Select
                           onValueChange={field.onChange}
-                          // defaultValue={field.value?.toString() || OrderStatus.NEW}
-                          value={field.value?.toString() || OrderStatus.NEW}
+                          defaultValue={field.value?.toString()}
+                          value={field.value?.toString() || ''}
                         >
                           <FormControl>
                             <SelectTrigger>

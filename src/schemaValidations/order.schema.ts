@@ -11,6 +11,7 @@ export const BaseOrderSchema = z.object({
   payment_total: z.coerce.number().positive(),
   customer_address: z.string().max(256),
   order_status: z.enum(OrderStatusValues).transform((value) => parseInt(value, 10)),
+  // order_status: z.enum(OrderStatusValues),
   // order_status: z.preprocess((value) => value.toString(), z.enum(OrderStatusValues)),
   order_date: z.date().optional()
 })

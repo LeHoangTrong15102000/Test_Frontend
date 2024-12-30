@@ -33,7 +33,6 @@ export default function AddOrder() {
       order_status: parseInt(OrderStatus.NEW, 10)
     }
   })
-  // const name = form.watch('name')
 
   const reset = () => {
     form.reset()
