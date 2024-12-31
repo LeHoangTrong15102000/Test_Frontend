@@ -116,11 +116,11 @@ export const columns: ColumnDef<OrderItem>[] = [
     }
   },
   {
-    accessorKey: 'CreatedAt',
+    accessorKey: 'order_date',
     header: () => <div>Ngày Tạo/Cập nhật</div>,
     cell: ({ row }) => (
       <div className='space-y-2 text-sm'>
-        <div className='flex items-center space-x-4'>{formatDateTimeToLocaleString(row.getValue('CreatedAt'))}</div>
+        <div className='flex items-center space-x-4'>{formatDateTimeToLocaleString(row.getValue('order_date'))}</div>
         <div className='flex items-center space-x-4'>
           {row.original.UpdatedAt ? formatDateTimeToLocaleString(row.original.UpdatedAt) : undefined}
         </div>

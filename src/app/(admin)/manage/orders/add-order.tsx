@@ -47,7 +47,8 @@ export default function AddOrder() {
       customer_name: '',
       customer_address: '',
       shipping_fee: 0,
-      order_status: parseInt(OrderStatus.NEW, 10)
+      order_status: parseInt(OrderStatus.NEW, 10),
+      order_date: ''
     }
   })
 
@@ -56,6 +57,7 @@ export default function AddOrder() {
   const customer_address = form.watch('customer_address')
   const shipping_fee = form.watch('shipping_fee')
   const order_status = form.watch('order_status')
+  const order_date = form.watch('order_date')
 
   const reset = () => {
     form.reset()
@@ -84,7 +86,7 @@ export default function AddOrder() {
     const price_total = selectedProducts.reduce((result, product) => result + product.quantity * product.price, 0)
     const cost_total = selectedProducts.reduce((result, product) => result + product.quantity * product.cost, 0)
     const quantity_total = selectedProducts.reduce((result, product) => result + product.quantity, 0)
-    const payment_total = price_total + shippingFee
+    const payment_total = price_total + Number(shippingFee)
 
     return { price_total, cost_total, quantity_total, payment_total }
   }
@@ -106,7 +108,6 @@ export default function AddOrder() {
         selectedProducts,
         shipping_fee
       )
-      // const { order_status, ...body } = values
       const orderResult = await createOrderMutation.mutateAsync({
         customer_name,
         customer_phone,
@@ -116,9 +117,9 @@ export default function AddOrder() {
         cost_total,
         shipping_fee,
         payment_total,
-        order_status: Number(order_status)
+        order_status: Number(order_status),
+        order_date
       })
-      console.log('Checkk orderResult', orderResult)
       const orderId = orderResult.payload.Id
 
       await Promise.all(
@@ -224,66 +225,6 @@ export default function AddOrder() {
                   </FormItem>
                 )}
               />
-              {/* <FormField
-                control={form.control}
-                name='quantity_total'
-                render={({ field }) => (
-                  <FormItem>
-                    <div className='grid grid-cols-4 items-center justify-items-start gap-4'>
-                      <Label htmlFor='quantity_total'>Tổng số lượng</Label>
-                      <div className='col-span-3 w-full space-y-2'>
-                        <Input id='quantity_total' className='w-full' {...field} type='number' />
-                        <FormMessage />
-                      </div>
-                    </div>
-                  </FormItem>
-                )}
-              /> */}
-              {/* <FormField
-                control={form.control}
-                name='cost_total'
-                render={({ field }) => (
-                  <FormItem>
-                    <div className='grid grid-cols-4 items-center justify-items-start gap-4'>
-                      <Label htmlFor='cost_total'>Tổng giá vốn</Label>
-                      <div className='col-span-3 w-full space-y-2'>
-                        <Input id='cost_total' className='w-full' {...field} type='number' />
-                        <FormMessage />
-                      </div>
-                    </div>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name='price_total'
-                render={({ field }) => (
-                  <FormItem>
-                    <div className='grid grid-cols-4 items-center justify-items-start gap-4'>
-                      <Label htmlFor='price_total'>Tổng giá bán</Label>
-                      <div className='col-span-3 w-full space-y-2'>
-                        <Input id='price_total' className='w-full' {...field} type='number' />
-                        <FormMessage />
-                      </div>
-                    </div>
-                  </FormItem>
-                )}
-              /> */}
-              {/* <FormField
-                control={form.control}
-                name='payment_total'
-                render={({ field }) => (
-                  <FormItem>
-                    <div className='grid grid-cols-4 items-center justify-items-start gap-4'>
-                      <Label htmlFor='payment_total'>Tổng thanh toán</Label>
-                      <div className='col-span-3 w-full space-y-2'>
-                        <Input id='payment_total' className='w-full' {...field} type='number' />
-                        <FormMessage />
-                      </div>
-                    </div>
-                  </FormItem>
-                )}
-              /> */}
               <FormField
                 control={form.control}
                 name='shipping_fee'
@@ -322,13 +263,33 @@ export default function AddOrder() {
                           </SelectContent>
                         </Select>
                       </div>
-
                       <FormMessage />
                     </div>
                   </FormItem>
                 )}
               />
-              {/* Thời gian tạo đơn hàng */}
+              <FormField
+                control={form.control}
+                name='order_date'
+                render={({ field }) => (
+                  <FormItem>
+                    <div className='grid grid-cols-4 items-center justify-items-start gap-4'>
+                      <Label htmlFor='order_date'>Ngày tạo</Label>
+                      <div className='col-span-3 space-y-2'>
+                        <Input
+                          id='order_date'
+                          type='datetime-local'
+                          className='text-sm'
+                          {...field}
+                          // value={format(fromDate, 'yyyy-MM-dd HH:mm').replace(' ', 'T')}
+                          // onChange={(event) => setFromDate(new Date(event.target.value))}
+                        />
+                        <FormMessage />
+                      </div>
+                    </div>
+                  </FormItem>
+                )}
+              />
             </div>
           </form>
         </Form>
@@ -376,7 +337,6 @@ export default function AddOrder() {
         <DialogFooter>
           <Button
             className='w-full justify-between'
-            form='add-order-form'
             onClick={handleCreateOrder}
             disabled={selectedProducts.length === 0}
           >
