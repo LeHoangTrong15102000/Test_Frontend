@@ -5,44 +5,136 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogT
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { PlusCircle, Upload } from 'lucide-react'
-import { useState } from 'react'
+import { Package, PlusCircle, Upload } from 'lucide-react'
+import { useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form'
 import { getVietnameseOrderStatus, handleErrorApi } from '@/lib/utils'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from '@/components/ui/use-toast'
-import { useAddOrderMutation } from '@/queries/useOrder'
+import { useCreateOrderMutation } from '@/queries/useOrder'
 import { CreateOrderBody, CreateOrderBodyType } from '@/schemaValidations/order.schema'
 import { OrderStatus, OrderStatusValues } from '@/constants/type'
+import { useGetProductListQuery } from '@/queries/useProduct'
+import { useCreateOrderItemMutation } from '@/queries/useOrderItem'
+import productApiRequest from '@/apiRequests/product'
+import Image from 'next/image'
+import Quantity from './quantity'
+import { formatCurrency } from '../../../../lib/utils'
+
+type SelectedProductType = {
+  productId: number
+  quantity: number
+  name: string
+  cost: number
+  price: number
+}
 
 export default function AddOrder() {
   const [open, setOpen] = useState(false)
-  const addOrderMutation = useAddOrderMutation()
+  const [selectedProducts, setSelectedProducts] = useState<SelectedProductType[]>([])
+
+  const { data } = useGetProductListQuery()
+  const productList = useMemo(() => data?.payload.list ?? [], [data])
+
+  const createOrderMutation = useCreateOrderMutation()
+  const createOrderItemMutation = useCreateOrderItemMutation()
+
   const form = useForm<CreateOrderBodyType>({
     resolver: zodResolver(CreateOrderBody),
     defaultValues: {
       customer_phone: '',
       customer_name: '',
-      quantity_total: 0,
-      cost_total: 0,
-      price_total: 0,
-      shipping_fee: 0,
-      payment_total: 0,
       customer_address: '',
+      shipping_fee: 0,
       order_status: parseInt(OrderStatus.NEW, 10)
     }
   })
 
+  const customer_name = form.watch('customer_name')
+  const customer_phone = form.watch('customer_phone')
+  const customer_address = form.watch('customer_address')
+  const shipping_fee = form.watch('shipping_fee')
+  const order_status = form.watch('order_status')
+
   const reset = () => {
     form.reset()
+    setSelectedProducts([])
+    setOpen(false)
   }
 
-  const onSubmit = async (values: CreateOrderBodyType) => {
-    if (addOrderMutation.isPending) return
+  const handleProductQuantityChange = ({ productId, quantity, name, cost, price }: SelectedProductType) => {
+    setSelectedProducts((prevSelectedProducts) => {
+      if (quantity === 0) {
+        return prevSelectedProducts.filter((product) => product.productId !== productId)
+      }
+      const currentProductIndex = prevSelectedProducts.findIndex((product) => product.productId === productId)
+      if (currentProductIndex === -1) {
+        return [...prevSelectedProducts, { productId, quantity, name, cost, price }]
+      }
+
+      const newSelectedProducts = [...prevSelectedProducts]
+      newSelectedProducts[currentProductIndex] = { ...newSelectedProducts[currentProductIndex], quantity }
+
+      return newSelectedProducts
+    })
+  }
+
+  const calculateTotalsFunc = (selectedProducts: SelectedProductType[], shippingFee: number) => {
+    const price_total = selectedProducts.reduce((result, product) => result + product.quantity * product.price, 0)
+    const cost_total = selectedProducts.reduce((result, product) => result + product.quantity * product.cost, 0)
+    const quantity_total = selectedProducts.reduce((result, product) => result + product.quantity, 0)
+    const payment_total = price_total + shippingFee
+
+    return { price_total, cost_total, quantity_total, payment_total }
+  }
+
+  const paymentTotalOrder = useMemo(() => {
+    return (
+      selectedProducts.reduce((result, product) => result + product.quantity * product.price, 0) + Number(shipping_fee)
+    )
+  }, [selectedProducts, shipping_fee])
+
+  const quantityTotal = useMemo(() => {
+    return selectedProducts.reduce((result, product) => result + product.quantity, 0)
+  }, [selectedProducts])
+
+  const handleCreateOrder = async () => {
+    if (createOrderMutation.isPending) return
     try {
-      const { order_status, ...body } = values
-      await addOrderMutation.mutateAsync({ ...body, order_status: Number(order_status) })
+      const { price_total, cost_total, quantity_total, payment_total } = calculateTotalsFunc(
+        selectedProducts,
+        shipping_fee
+      )
+      // const { order_status, ...body } = values
+      const orderResult = await createOrderMutation.mutateAsync({
+        customer_name,
+        customer_phone,
+        customer_address,
+        quantity_total,
+        price_total,
+        cost_total,
+        shipping_fee,
+        payment_total,
+        order_status: Number(order_status)
+      })
+      console.log('Checkk orderResult', orderResult)
+      const orderId = orderResult.payload.Id
+
+      await Promise.all(
+        selectedProducts.map((product) => {
+          return createOrderItemMutation.mutateAsync({
+            order_id: orderId,
+            product_id: product.productId,
+            product_name: product.name,
+            quantity: product.quantity,
+            cost: product.cost,
+            price: product.price,
+            cost_total: product.cost * product.quantity,
+            price_total: product.price * product.quantity
+          })
+        })
+      )
       toast({
         description: 'Tạo đơn hàng thành công!'
       })
@@ -81,10 +173,10 @@ export default function AddOrder() {
             noValidate
             className='grid auto-rows-max items-start gap-4 md:gap-8'
             id='add-order-form'
-            onSubmit={form.handleSubmit(onSubmit, (e) => {
-              console.log(e)
-            })}
-            onReset={reset}
+            // onSubmit={form.handleSubmit(onSubmit, (e) => {
+            //   console.log(e)
+            // })}
+            // onReset={reset}
           >
             <div className='grid gap-4 py-4'>
               <FormField
@@ -132,7 +224,7 @@ export default function AddOrder() {
                   </FormItem>
                 )}
               />
-              <FormField
+              {/* <FormField
                 control={form.control}
                 name='quantity_total'
                 render={({ field }) => (
@@ -146,8 +238,8 @@ export default function AddOrder() {
                     </div>
                   </FormItem>
                 )}
-              />
-              <FormField
+              /> */}
+              {/* <FormField
                 control={form.control}
                 name='cost_total'
                 render={({ field }) => (
@@ -176,7 +268,22 @@ export default function AddOrder() {
                     </div>
                   </FormItem>
                 )}
-              />
+              /> */}
+              {/* <FormField
+                control={form.control}
+                name='payment_total'
+                render={({ field }) => (
+                  <FormItem>
+                    <div className='grid grid-cols-4 items-center justify-items-start gap-4'>
+                      <Label htmlFor='payment_total'>Tổng thanh toán</Label>
+                      <div className='col-span-3 w-full space-y-2'>
+                        <Input id='payment_total' className='w-full' {...field} type='number' />
+                        <FormMessage />
+                      </div>
+                    </div>
+                  </FormItem>
+                )}
+              /> */}
               <FormField
                 control={form.control}
                 name='shipping_fee'
@@ -186,21 +293,6 @@ export default function AddOrder() {
                       <Label htmlFor='shipping_fee'>Phí giao hàng</Label>
                       <div className='col-span-3 w-full space-y-2'>
                         <Input id='shipping_fee' className='w-full' {...field} type='number' />
-                        <FormMessage />
-                      </div>
-                    </div>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name='payment_total'
-                render={({ field }) => (
-                  <FormItem>
-                    <div className='grid grid-cols-4 items-center justify-items-start gap-4'>
-                      <Label htmlFor='payment_total'>Tổng thanh toán</Label>
-                      <div className='col-span-3 w-full space-y-2'>
-                        <Input id='payment_total' className='w-full' {...field} type='number' />
                         <FormMessage />
                       </div>
                     </div>
@@ -236,12 +328,62 @@ export default function AddOrder() {
                   </FormItem>
                 )}
               />
+              {/* Thời gian tạo đơn hàng */}
             </div>
           </form>
         </Form>
+        {productList.map((product) => (
+          <div key={product.Id} className='flex gap-4'>
+            <div className='flex-shrink-0 relative'>
+              {product?.image ? (
+                <Image
+                  src={product?.image}
+                  alt={product.name}
+                  height={100}
+                  width={100}
+                  quality={100}
+                  className='object-cover w-[80px] h-[80px] rounded-md'
+                />
+              ) : (
+                <div className='flex items-center justify-center w-[80px] h-[80px] rounded-md bg-gray-200'>
+                  <Package size={40} className='text-gray-500' />
+                </div>
+              )}
+            </div>
+            <div className='space-y-1'>
+              <h3 className='text-sm'>{product.name}</h3>
+              <p className='text-xs'>Giá bán: {formatCurrency(product.price)}</p>
+              <p className='text-xs'>Giá vốn: {formatCurrency(product.cost)}</p>
+            </div>
+            <div className='flex-shrink-0 ml-auto flex justify-centeri items-center'>
+              <Quantity
+                onChange={(value) =>
+                  handleProductQuantityChange({
+                    productId: product.Id,
+                    quantity: value,
+                    name: product.name,
+                    cost: product.cost,
+                    price: product.price
+                  })
+                }
+                value={
+                  selectedProducts.find((selectedProduct) => selectedProduct.productId === product.Id)?.quantity ?? 0
+                }
+              />
+            </div>
+          </div>
+        ))}
         <DialogFooter>
-          <Button type='submit' form='add-order-form'>
-            Thêm
+          <Button
+            className='w-full justify-between'
+            form='add-order-form'
+            onClick={handleCreateOrder}
+            disabled={selectedProducts.length === 0}
+          >
+            <span>
+              Đặt hàng · {selectedProducts.length} sản phẩm(số lượng: {quantityTotal})
+            </span>
+            <span>{formatCurrency(paymentTotalOrder)}</span>
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form'
 import { getVietnameseOrderStatus, handleErrorApi } from '@/lib/utils'
@@ -14,6 +14,7 @@ import { OrderStatus, OrderStatusValues } from '@/constants/type'
 import { UpdateOrderBody, UpdateOrderBodyType } from '@/schemaValidations/order.schema'
 import { Select, SelectContent, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { SelectItem } from '@radix-ui/react-select'
+import { useGetOrderItemListQuery } from '@/queries/useOrderItem'
 
 export default function EditOrder({
   id,
@@ -26,6 +27,7 @@ export default function EditOrder({
 }) {
   const updateOrderMutation = useUpdateOrderMutation()
   const { data } = useGetOrderQuery({ enabled: Boolean(id), id: id as number })
+  // const { data: orderItemList } = useGetOrderItemListQuery({ enabled: Boolean(id), orderId: id })
   const form = useForm<UpdateOrderBodyType>({
     resolver: zodResolver(UpdateOrderBody),
     defaultValues: {
@@ -38,9 +40,10 @@ export default function EditOrder({
       payment_total: 0,
       customer_address: '',
       order_status: parseInt(OrderStatus.NEW, 10)
+      // order_status: OrderStatus.NEW
     }
   })
-  const order_status = form.watch('customer_name')?.toString()
+  // const order_status = form.watch('customer_name')?.toString()
 
   useEffect(() => {
     if (data) {
@@ -55,6 +58,7 @@ export default function EditOrder({
         payment_total,
         order_status
       } = data.payload
+
       form.reset({
         customer_name,
         customer_phone,
@@ -74,7 +78,8 @@ export default function EditOrder({
     try {
       let body: UpdateOrderBodyType & { Id: number } = {
         Id: id as number,
-        ...values
+        ...values,
+        order_status: Number(values.order_status)
         // parseInt cái giá trị order_status lại thành số trước khi gửi lên server
       }
       await updateOrderMutation.mutateAsync(body)
@@ -93,6 +98,7 @@ export default function EditOrder({
 
   const reset = () => {
     setId(undefined)
+    form.reset()
   }
 
   return (
@@ -239,42 +245,57 @@ export default function EditOrder({
               <FormField
                 control={form.control}
                 name='order_status'
-                render={({ field }) => (
-                  <FormItem>
-                    <div className='grid grid-cols-4 items-center justify-items-start gap-4'>
-                      <Label htmlFor='order_status'>Trạng thái</Label>
-                      <div className='col-span-3 w-full space-y-2'>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value?.toString()}
-                          value={field.value?.toString() || ''}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder='Chọn trạng thái' />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
+                render={({ field }) => {
+                  return (
+                    <FormItem>
+                      <div className='grid grid-cols-4 items-center justify-items-start gap-4'>
+                        <Label htmlFor='order_status'>Trạng thái</Label>
+                        <div className='col-span-3 w-full space-y-2'>
+                          {/* <Select
+                            onValueChange={field.onChange}
+                            defaultValue={String(field.value)}
+                            value={field.value?.toString()}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder='Chọn trạng thái' />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {OrderStatusValues.map((status) => (
+                                <SelectItem key={status} value={status}>
+                                  {getVietnameseOrderStatus(status)}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select> */}
+                          <select
+                            id='order_status'
+                            className='w-full rounded-md border p-2 text-sm bg-background text-foreground border-border dark:bg-[#020817] dark:text-gray-100 dark:border-gray-700'
+                            value={field.value?.toString() || OrderStatus.NEW}
+                            onChange={field.onChange}
+                            onBlur={field.onBlur}
+                          >
                             {OrderStatusValues.map((status) => (
-                              <SelectItem key={status} value={status}>
+                              <option key={status} value={status}>
                                 {getVietnameseOrderStatus(status)}
-                              </SelectItem>
+                              </option>
                             ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
+                          </select>
+                        </div>
 
-                      <FormMessage />
-                    </div>
-                  </FormItem>
-                )}
+                        <FormMessage />
+                      </div>
+                    </FormItem>
+                  )
+                }}
               />
             </div>
           </form>
         </Form>
         <DialogFooter>
-          <Button type='submit' form='edit-order-form'>
-            Lưu
+          <Button className='w-full' type='submit' form='edit-order-form'>
+            Cập nhật
           </Button>
         </DialogFooter>
       </DialogContent>

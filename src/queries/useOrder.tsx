@@ -1,5 +1,5 @@
 import orderApiRequest from '@/apiRequests/order'
-import { CreateOrderBodyType, UpdateOrderBodyType } from '@/schemaValidations/order.schema'
+import { CreateOrderBodyType, DeleteOrderBodyType, UpdateOrderBodyType } from '@/schemaValidations/order.schema'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 export const useGetOrderListQuery = () => {
@@ -17,7 +17,7 @@ export const useGetOrderQuery = ({ id, enabled }: { id: number; enabled: boolean
   })
 }
 
-export const useAddOrderMutation = () => {
+export const useCreateOrderMutation = () => {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (body: CreateOrderBodyType) => orderApiRequest.addOrder(body),
@@ -47,7 +47,7 @@ export const useDeleteOrderMutation = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: orderApiRequest.deleteOrder,
+    mutationFn: (body: DeleteOrderBodyType) => orderApiRequest.deleteOrder(body),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ['orders']

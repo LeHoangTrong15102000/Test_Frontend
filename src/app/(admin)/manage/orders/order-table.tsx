@@ -45,6 +45,7 @@ import AddOrder from './add-order'
 import { OrderListResType } from '@/schemaValidations/order.schema'
 import { useDeleteOrderMutation, useGetOrderListQuery } from '@/queries/useOrder'
 import { OrderStatus } from '@/constants/type'
+import { useGetOrderItemListQuery } from '@/queries/useOrderItem'
 
 type OrderItem = OrderListResType['list'][0]
 
@@ -171,7 +172,7 @@ function AlertDialogDeleteOrder({
   const deleteOrder = async () => {
     if (orderDelete) {
       try {
-        await mutateAsync(orderDelete.Id)
+        await mutateAsync({ Id: orderDelete.Id })
         setOrderDelete(null)
         toast({
           title: 'Đã xoá đơn hàng thành công!'
@@ -221,6 +222,8 @@ export default function OrderTable() {
   const [orderDelete, setOrderDelete] = useState<OrderItem | null>(null)
   const orderListQuery = useGetOrderListQuery()
   const data = orderListQuery.data?.payload.list ?? []
+  // const { data: orderItemList } = useGetOrderItemListQuery({ enabled: true })
+  // console.log('Checkkk order item list', orderItemList)
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})

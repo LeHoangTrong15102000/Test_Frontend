@@ -5,6 +5,7 @@ export const ProductSchema = z.object({
   name: z.string(),
   price: z.coerce.number().positive(),
   cost: z.coerce.number().positive(),
+  image: z.string().optional(),
   CreatedAt: z.date(),
   UpdatedAt: z.date()
 })
@@ -37,3 +38,9 @@ export const UpdateProductBody = z.object({
 })
 
 export type UpdateProductBodyType = z.TypeOf<typeof UpdateProductBody>
+
+export const DeleteProductBody = z.object({
+  Id: z.number()
+})
+
+export type DeleteProductBodyType = z.TypeOf<typeof DeleteProductBody>

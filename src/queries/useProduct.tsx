@@ -1,5 +1,5 @@
 import productApiRequest from '@/apiRequests/product'
-import { UpdateProductBodyType } from '@/schemaValidations/product.schema'
+import { CreateProductBodyType, DeleteProductBodyType, UpdateProductBodyType } from '@/schemaValidations/product.schema'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 export const useGetProductListQuery = () => {
@@ -20,7 +20,7 @@ export const useGetProductQuery = ({ id, enabled }: { id: number; enabled: boole
 export const useAddProductMutation = () => {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: productApiRequest.addProduct,
+    mutationFn: (body: CreateProductBodyType) => productApiRequest.addProduct(body),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ['products']
@@ -47,7 +47,7 @@ export const useDeleteProductMutation = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: productApiRequest.deleteProduct,
+    mutationFn: (body: DeleteProductBodyType) => productApiRequest.deleteProduct(body),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ['products']

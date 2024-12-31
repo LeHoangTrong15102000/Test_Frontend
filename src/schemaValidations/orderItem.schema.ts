@@ -1,22 +1,45 @@
-import { DishStatusValues, OrderStatusValues } from '@/constants/type'
 import z from 'zod'
 
-export const OrderItemSchema = z.object({
-  id: z.number(),
-  status: z.enum(OrderStatusValues),
-  createdAt: z.date(),
-  updatedAt: z.date()
+export const BaseOrderItemSchema = z.object({
+  order_id: z.number().positive(),
+  product_id: z.number().positive(),
+  product_name: z.string().max(100),
+  quantity: z.number().positive(),
+  cost: z.number().positive(),
+  price: z.number().positive(),
+  cost_total: z.number().positive(),
+  price_total: z.number().positive()
 })
 
+export const OrderItemSchema = BaseOrderItemSchema.extend({
+  Id: z.number(),
+  CreatedAt: z.date(),
+  UpdatedAt: z.date()
+})
 
-export const GetListOrder = z.object({})
+export const OrderItemRes = OrderItemSchema
 
-export const GetOrderDetail = z.object({})
+export type OrderItemResType = z.TypeOf<typeof OrderItemRes>
 
-export const CreateOrderBody = z.object({})
+export const OrderItemListRes = z.intersection(
+  z.object({
+    list: z.array(OrderItemSchema)
+  }),
+  z.record(z.string(), z.unknown())
+)
 
+export type OrderItemListResType = z.TypeOf<typeof OrderItemListRes>
 
-export const UpdateOrderBody = z.object({})
+export const CreateOrderItemBody = BaseOrderItemSchema
 
+export type CreateOrderItemBodyType = z.TypeOf<typeof CreateOrderItemBody>
 
-export const DeleteOrder =  z.object({})
+export const UpdateOrderItemBody = BaseOrderItemSchema.partial()
+
+export type UpdateOrderItemBodyType = z.TypeOf<typeof UpdateOrderItemBody>
+
+export const DeleteOrderItemBody = z.object({
+  Id: z.number()
+})
+
+export type DeleteOrderItemBodyType = z.TypeOf<typeof DeleteOrderItemBody>

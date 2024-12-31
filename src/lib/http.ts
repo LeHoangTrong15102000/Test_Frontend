@@ -2,6 +2,7 @@ import envConfig, { defaultLocale } from '@/config'
 import { normalizePath } from './utils'
 type CustomOptions = Omit<RequestInit, 'method'> & {
   baseUrl?: string | undefined
+  params?: Record<string, string> | undefined
 }
 
 const ENTITY_ERROR_STATUS = 422
@@ -70,9 +71,16 @@ const request = async <Response>(
   // Nếu không truyền baseUrl (hoặc baseUrl = undefined) thì lấy từ envConfig.NEXT_PUBLIC_API_ENDPOINT
   // Nếu truyền baseUrl thì lấy giá trị truyền vào, truyền vào '' thì đồng nghĩa với việc chúng ta gọi API đến Next.js Server
 
+  const queryParams = options?.params
+    ? '?' +
+      Object.entries(options.params)
+        .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+        .join('&')
+    : ''
+
   const baseUrl = options?.baseUrl === undefined ? envConfig.NEXT_PUBLIC_API_ENDPOINT : options.baseUrl
 
-  const fullUrl = `${baseUrl}/${normalizePath(url)}`
+  const fullUrl = `${baseUrl}/${normalizePath(url)}${queryParams}`
   const res = await fetch(fullUrl, {
     ...options,
     headers: {
@@ -135,8 +143,8 @@ const http = {
   patch<Response>(url: string, body: any, options?: Omit<CustomOptions, 'body'> | undefined) {
     return request<Response>('PATCH', url, { ...options, body })
   },
-  delete<Response>(url: string, options?: Omit<CustomOptions, 'body'> | undefined) {
-    return request<Response>('DELETE', url, { ...options })
+  delete<Response>(url: string, body?: any, options?: Omit<CustomOptions, 'body'> | undefined) {
+    return request<Response>('DELETE', url, { ...options, body })
   }
 }
 

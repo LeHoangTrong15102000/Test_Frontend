@@ -125,7 +125,7 @@ function AlertDialogDeleteProduct({
   const deleteProduct = async () => {
     if (productDelete) {
       try {
-        await mutateAsync(productDelete.Id)
+        await mutateAsync({ Id: productDelete.Id })
         setProductDelete(null)
         toast({
           title: 'Đã xoá sản phẩm thành công!'
@@ -164,7 +164,7 @@ function AlertDialogDeleteProduct({
 }
 
 // Số lượng item trên 1 trang
-const PAGE_SIZE = 3
+const PAGE_SIZE = 10
 export default function ProductTable() {
   const searchParam = useSearchParams()
   const page = searchParam.get('page') ? Number(searchParam.get('page')) : 1

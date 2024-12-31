@@ -42,3 +42,9 @@ export type CreateOrderBodyType = z.TypeOf<typeof CreateOrderBody>
 export const UpdateOrderBody = BaseOrderSchema.partial()
 
 export type UpdateOrderBodyType = z.TypeOf<typeof UpdateOrderBody>
+
+export const DeleteOrderBody = z.object({
+  Id: z.number()
+})
+
+export type DeleteOrderBodyType = z.TypeOf<typeof DeleteOrderBody>
