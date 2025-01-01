@@ -8,7 +8,8 @@ export const BaseOrderItemSchema = z.object({
   cost: z.number().positive(),
   price: z.number().positive(),
   cost_total: z.number().positive(),
-  price_total: z.number().positive()
+  price_total: z.number().positive(),
+  image: z.string().optional()
 })
 
 export const OrderItemSchema = BaseOrderItemSchema.extend({

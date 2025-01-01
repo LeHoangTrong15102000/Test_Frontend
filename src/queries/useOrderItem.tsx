@@ -1,7 +1,10 @@
 import orderItemApiRequest from '@/apiRequests/orderItem'
-import { CreateOrderBodyType, DeleteOrderBodyType, UpdateOrderBodyType } from '@/schemaValidations/order.schema'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { CreateOrderItemBodyType, DeleteOrderItemBodyType } from '../schemaValidations/orderItem.schema'
+import {
+  CreateOrderItemBodyType,
+  DeleteOrderItemBodyType,
+  UpdateOrderItemBodyType
+} from '../schemaValidations/orderItem.schema'
 
 export const useGetOrderItemListQuery = ({ orderId, enabled }: { orderId?: number; enabled?: boolean }) => {
   return useQuery({
@@ -35,7 +38,7 @@ export const useUpdateOrderItemMutation = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (body: UpdateOrderBodyType) => orderItemApiRequest.updateOrderItem(body),
+    mutationFn: (body: { Id: number } & UpdateOrderItemBodyType) => orderItemApiRequest.updateOrderItem(body),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ['order-items'],

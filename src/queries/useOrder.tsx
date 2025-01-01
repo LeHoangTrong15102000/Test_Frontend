@@ -33,7 +33,7 @@ export const useUpdateOrderMutation = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (body: UpdateOrderBodyType) => orderApiRequest.updateOrder(body),
+    mutationFn: (body: { Id: number } & UpdateOrderBodyType) => orderApiRequest.updateOrder(body),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ['orders'],

@@ -13,7 +13,7 @@ export const BaseOrderSchema = z.object({
   order_status: z.enum(OrderStatusValues).transform((value) => parseInt(value, 10)),
   // order_status: z.enum(OrderStatusValues),
   // order_status: z.preprocess((value) => value.toString(), z.enum(OrderStatusValues)),
-  order_date: z.string().datetime({ offset: true }).optional()
+  order_date: z.string().datetime({ offset: true })
 })
 
 export const OrderSchema = BaseOrderSchema.extend({

@@ -111,13 +111,13 @@ export const columns: ColumnDef<OrderItem>[] = [
     header: 'Trạng thái',
     cell: ({ row }) => {
       const statusNumber = row.getValue('order_status') as number
-      const statusString = statusNumber.toString() as (typeof OrderStatus)[keyof typeof OrderStatus]
+      const statusString = String(statusNumber) as (typeof OrderStatus)[keyof typeof OrderStatus]
       return <div>{getVietnameseOrderStatus(statusString)}</div>
     }
   },
   {
     accessorKey: 'order_date',
-    header: () => <div>Ngày Tạo/Cập nhật</div>,
+    header: () => <div>Ngày tạo/Cập nhật</div>,
     cell: ({ row }) => (
       <div className='space-y-2 text-sm'>
         <div className='flex items-center space-x-4'>{formatDateTimeToLocaleString(row.getValue('order_date'))}</div>
@@ -223,7 +223,6 @@ export default function OrderTable() {
   const orderListQuery = useGetOrderListQuery()
   const data = orderListQuery.data?.payload.list ?? []
   // const { data: orderItemList } = useGetOrderItemListQuery({ enabled: true })
-  // console.log('Checkkk order item list', orderItemList)
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
