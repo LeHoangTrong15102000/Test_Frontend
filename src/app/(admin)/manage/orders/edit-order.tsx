@@ -34,6 +34,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle
 } from '@/components/ui/alert-dialog'
+import DialogAddProduct from './dialog-add-product'
+import { Skeleton } from '@/components/ui/skeleton'
+import EditOrderSkeleton from './edit-order-skeleton'
 
 type SelectedOrderItemType = OrderItemListResType['list'][0]
 type OrderItemType = OrderItemListResType['list'][0]
@@ -103,8 +106,11 @@ export default function EditOrder({
   setId: (value: number | undefined) => void
   onSubmitSuccess?: () => void
 }) {
-  const { data } = useGetOrderQuery({ enabled: Boolean(id), id: id as number })
-  const { data: orderItemList } = useGetOrderItemListQuery({ enabled: Boolean(id), orderId: id })
+  const { data, isPending: orderIsPending } = useGetOrderQuery({ enabled: Boolean(id), id: id as number })
+  const { data: orderItemList, isPending: orderItemListPending } = useGetOrderItemListQuery({
+    enabled: Boolean(id),
+    orderId: id
+  })
   const orderItems = useMemo(() => orderItemList?.payload.list ?? [], [orderItemList])
 
   // const [isDialogAddProduct, setIsDialogAddProduct] = useState<boolean>(false)
@@ -266,100 +272,104 @@ export default function EditOrder({
         }}
       >
         <DialogContent className='sm:max-w-[600px] max-h-screen overflow-auto'>
-          <DialogHeader>
-            <DialogTitle>Cập nhật đơn hàng</DialogTitle>
-          </DialogHeader>
-          <Form {...form}>
-            <form noValidate className='grid auto-rows-max items-start gap-4 md:gap-8' id='edit-order-form'>
-              <div className='grid gap-4 py-4'>
-                <FormField
-                  control={form.control}
-                  name='customer_name'
-                  render={({ field }) => (
-                    <FormItem>
-                      <div className='grid grid-cols-4 items-center justify-items-start gap-4'>
-                        <Label htmlFor='customer_name'>Tên khách hàng</Label>
-                        <div className='col-span-3 w-full space-y-2'>
-                          <Input id='customer_name' className='w-full' {...field} />
-                          <FormMessage />
-                        </div>
-                      </div>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name='customer_phone'
-                  render={({ field }) => (
-                    <FormItem>
-                      <div className='grid grid-cols-4 items-center justify-items-start gap-4'>
-                        <Label htmlFor='customer_phone'>Số điện thoại</Label>
-                        <div className='col-span-3 w-full space-y-2'>
-                          <Input id='customer_phone' className='w-full' {...field} />
-                          <FormMessage />
-                        </div>
-                      </div>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name='customer_address'
-                  render={({ field }) => (
-                    <FormItem>
-                      <div className='grid grid-cols-4 items-center justify-items-start gap-4'>
-                        <Label htmlFor='customer_address'>Địa chỉ</Label>
-                        <div className='col-span-3 w-full space-y-2'>
-                          <Input id='customer_address' className='w-full' {...field} />
-                          <FormMessage />
-                        </div>
-                      </div>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name='shipping_fee'
-                  render={({ field }) => (
-                    <FormItem>
-                      <div className='grid grid-cols-4 items-center justify-items-start gap-4'>
-                        <Label htmlFor='shipping_fee'>Phí giao hàng</Label>
-                        <div className='col-span-3 w-full space-y-2'>
-                          <Input id='shipping_fee' className='w-full' {...field} type='number' />
-                          <FormMessage />
-                        </div>
-                      </div>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name='order_status'
-                  render={({ field }) => {
-                    return (
-                      <FormItem>
-                        <div className='grid grid-cols-4 items-center justify-items-start gap-4'>
-                          <Label htmlFor='order_status'>Trạng thái</Label>
-                          <div className='col-span-3 w-full space-y-2'>
-                            <Select
-                              onValueChange={field.onChange}
-                              defaultValue={String(field.value)}
-                              value={String(field.value)}
-                            >
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder='Chọn trạng thái' />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {OrderStatusValues.map((status) => (
-                                  <SelectItem key={status} value={status}>
-                                    {getVietnameseOrderStatus(status)}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            {/* <select
+          {orderIsPending || orderItemListPending ? (
+            <EditOrderSkeleton />
+          ) : (
+            <>
+              <DialogHeader>
+                <DialogTitle>Cập nhật đơn hàng</DialogTitle>
+              </DialogHeader>
+              <Form {...form}>
+                <form noValidate className='grid auto-rows-max items-start gap-4 md:gap-8' id='edit-order-form'>
+                  <div className='grid gap-4 py-4'>
+                    <FormField
+                      control={form.control}
+                      name='customer_name'
+                      render={({ field }) => (
+                        <FormItem>
+                          <div className='grid grid-cols-4 items-center justify-items-start gap-4'>
+                            <Label htmlFor='customer_name'>Tên khách hàng</Label>
+                            <div className='col-span-3 w-full space-y-2'>
+                              <Input id='customer_name' className='w-full' {...field} />
+                              <FormMessage />
+                            </div>
+                          </div>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name='customer_phone'
+                      render={({ field }) => (
+                        <FormItem>
+                          <div className='grid grid-cols-4 items-center justify-items-start gap-4'>
+                            <Label htmlFor='customer_phone'>Số điện thoại</Label>
+                            <div className='col-span-3 w-full space-y-2'>
+                              <Input id='customer_phone' className='w-full' {...field} />
+                              <FormMessage />
+                            </div>
+                          </div>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name='customer_address'
+                      render={({ field }) => (
+                        <FormItem>
+                          <div className='grid grid-cols-4 items-center justify-items-start gap-4'>
+                            <Label htmlFor='customer_address'>Địa chỉ</Label>
+                            <div className='col-span-3 w-full space-y-2'>
+                              <Input id='customer_address' className='w-full' {...field} />
+                              <FormMessage />
+                            </div>
+                          </div>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name='shipping_fee'
+                      render={({ field }) => (
+                        <FormItem>
+                          <div className='grid grid-cols-4 items-center justify-items-start gap-4'>
+                            <Label htmlFor='shipping_fee'>Phí giao hàng</Label>
+                            <div className='col-span-3 w-full space-y-2'>
+                              <Input id='shipping_fee' className='w-full' {...field} type='number' />
+                              <FormMessage />
+                            </div>
+                          </div>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name='order_status'
+                      render={({ field }) => {
+                        return (
+                          <FormItem>
+                            <div className='grid grid-cols-4 items-center justify-items-start gap-4'>
+                              <Label htmlFor='order_status'>Trạng thái</Label>
+                              <div className='col-span-3 w-full space-y-2'>
+                                <Select
+                                  onValueChange={field.onChange}
+                                  defaultValue={String(field.value)}
+                                  value={String(field.value)}
+                                >
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder='Chọn trạng thái' />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {OrderStatusValues.map((status) => (
+                                      <SelectItem key={status} value={status}>
+                                        {getVietnameseOrderStatus(status)}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                {/* <select
                               id='order_status'
                               className='w-full rounded-md border p-2 text-sm bg-background text-foreground border-border dark:bg-[#020817] dark:text-gray-100 dark:border-gray-700'
                               value={field.value?.toString() || OrderStatus.NEW}
@@ -372,86 +382,91 @@ export default function EditOrder({
                                 </option>
                               ))}
                             </select> */}
+                              </div>
+                              <FormMessage />
+                            </div>
+                          </FormItem>
+                        )
+                      }}
+                    />
+                    <FormField
+                      control={form.control}
+                      name='order_date'
+                      render={({ field }) => (
+                        <FormItem>
+                          <div className='grid grid-cols-4 items-center justify-items-start gap-4'>
+                            <Label htmlFor='order_date'>Ngày tạo</Label>
+                            <div className='col-span-3 space-y-2'>
+                              <Input
+                                id='order_date'
+                                type='datetime-local'
+                                className='text-sm'
+                                {...field}
+                                value={
+                                  field.value ? format(new Date(field.value), 'yyyy-MM-dd HH:mm').replace(' ', 'T') : ''
+                                }
+                                onChange={field.onChange}
+                              />
+                              <FormMessage />
+                            </div>
                           </div>
-                          <FormMessage />
-                        </div>
-                      </FormItem>
-                    )
-                  }}
-                />
-                <FormField
-                  control={form.control}
-                  name='order_date'
-                  render={({ field }) => (
-                    <FormItem>
-                      <div className='grid grid-cols-4 items-center justify-items-start gap-4'>
-                        <Label htmlFor='order_date'>Ngày tạo</Label>
-                        <div className='col-span-3 space-y-2'>
-                          <Input
-                            id='order_date'
-                            type='datetime-local'
-                            className='text-sm'
-                            {...field}
-                            value={
-                              field.value ? format(new Date(field.value), 'yyyy-MM-dd HH:mm').replace(' ', 'T') : ''
-                            }
-                            onChange={field.onChange}
-                          />
-                          <FormMessage />
-                        </div>
-                      </div>
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </form>
-          </Form>
-          {orderItems.map((item) => (
-            <div key={item.Id} className='flex gap-4'>
-              <div className='flex-shrink-0 relative'>
-                {item?.image ? (
-                  <Image
-                    src={item?.image}
-                    alt={item.product_name}
-                    height={100}
-                    width={100}
-                    quality={100}
-                    className='object-cover w-[80px] h-[80px] rounded-md'
-                  />
-                ) : (
-                  <div className='flex items-center justify-center w-[80px] h-[80px] rounded-md bg-gray-200'>
-                    <Package size={40} className='text-gray-500' />
+                        </FormItem>
+                      )}
+                    />
                   </div>
-                )}
-              </div>
-              <div className='space-y-1'>
-                <h3 className='text-sm'>{item.product_name}</h3>
-                <p className='text-xs'>Giá bán: {formatCurrency(item.price)}</p>
-                <p className='text-xs'>Giá vốn: {formatCurrency(item.cost)}</p>
-              </div>
-              <div className='flex-shrink-0 ml-auto flex justify-center items-center'>
-                <Quantity
-                  onChange={(value) => handleOrderItemQuantity(item.Id, value)}
-                  value={
-                    selectedOrderItems.find((selectedOrderItems) => selectedOrderItems.Id === item.Id)?.quantity ?? 0
-                  }
-                />
-              </div>
-              <div className='flex-shrink-0 flex justify-center items-center'>
-                <Button variant='ghost' size='icon' onClick={() => setOrderItemDelete(item)}>
-                  <Trash className='h-4 w-4' />
+                </form>
+              </Form>
+              {/* Cho thêm skeleton sản phẩmm ở đây */}
+              {orderItems.map((item) => (
+                <div key={item.Id} className='flex gap-4'>
+                  <div className='flex-shrink-0 relative'>
+                    {item?.image ? (
+                      <Image
+                        src={item?.image}
+                        alt={item.product_name}
+                        height={100}
+                        width={100}
+                        quality={100}
+                        className='object-cover w-[80px] h-[80px] rounded-md'
+                      />
+                    ) : (
+                      <div className='flex items-center justify-center w-[80px] h-[80px] rounded-md bg-gray-200'>
+                        <Package size={40} className='text-gray-500' />
+                      </div>
+                    )}
+                  </div>
+                  <div className='space-y-1'>
+                    <h3 className='text-sm'>{item.product_name}</h3>
+                    <p className='text-xs'>Giá bán: {formatCurrency(item.price)}</p>
+                    <p className='text-xs'>Giá vốn: {formatCurrency(item.cost)}</p>
+                  </div>
+                  <div className='flex-shrink-0 ml-auto flex justify-center items-center'>
+                    <Quantity
+                      onChange={(value) => handleOrderItemQuantity(item.Id, value)}
+                      value={
+                        selectedOrderItems.find((selectedOrderItems) => selectedOrderItems.Id === item.Id)?.quantity ??
+                        0
+                      }
+                    />
+                  </div>
+                  <div className='flex-shrink-0 flex justify-center items-center'>
+                    <Button variant='ghost' size='icon' onClick={() => setOrderItemDelete(item)}>
+                      <Trash className='h-4 w-4' />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+              <DialogAddProduct onAddProduct={() => {}} />
+              <DialogFooter>
+                <Button className='w-full justify-between' onClick={handleUpdateOrder}>
+                  <span>
+                    Cập nhật · {selectedOrderItems.length} sản phẩm(số lượng: {quantityTotal})
+                  </span>
+                  <span>{formatCurrency(paymentTotalOrder)}</span>
                 </Button>
-              </div>
-            </div>
-          ))}
-          <DialogFooter>
-            <Button className='w-full justify-between' onClick={handleUpdateOrder}>
-              <span>
-                Cập nhật · {selectedOrderItems.length} sản phẩm(số lượng: {quantityTotal})
-              </span>
-              <span>{formatCurrency(paymentTotalOrder)}</span>
-            </Button>
-          </DialogFooter>
+              </DialogFooter>
+            </>
+          )}
         </DialogContent>
       </Dialog>
     </>
