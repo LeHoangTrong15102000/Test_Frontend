@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import AutoPagination from '@/components/auto-pagination'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -19,10 +19,16 @@ import { formatCurrency, formatDateTimeToLocaleString, simpleMatchText } from '@
 import { Input } from '@/components/ui/input'
 import { ProductListResType } from '@/schemaValidations/product.schema'
 import { useGetProductListQuery } from '@/queries/useProduct'
-import { useCreateOrderItemMutation } from '@/queries/useOrderItem'
+import {
+  useCreateOrderItemMutation,
+  useGetOrderItemListQuery,
+  useUpdateOrderItemMutation
+} from '@/queries/useOrderItem'
 import { toast } from '@/components/ui/use-toast'
+import { OrderItemListResType } from '@/schemaValidations/orderItem.schema'
 
 type ProductItemResType = ProductListResType['list'][0]
+type OrderItemType = OrderItemListResType['list'][0]
 
 export const columns: ColumnDef<ProductItemResType>[] = [
   {
@@ -83,7 +89,14 @@ export default function DialogAddProduct({ onAddProduct, orderId }: { onAddProdu
 
   const productListQuery = useGetProductListQuery()
   const data = productListQuery.data?.payload.list ?? []
+  const { data: orderItemList, isPending: orderItemListPending } = useGetOrderItemListQuery({
+    enabled: Boolean(orderId),
+    orderId: orderId
+  })
+  const orderItems = useMemo(() => orderItemList?.payload.list ?? [], [orderItemList])
+
   const createOrderItemMutation = useCreateOrderItemMutation()
+  const updateOrderItemMutation = useUpdateOrderItemMutation()
 
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
@@ -123,22 +136,41 @@ export default function DialogAddProduct({ onAddProduct, orderId }: { onAddProdu
     })
   }, [table])
 
+  const checkProductExists = (productId: number, orderItems: OrderItemType[]) => {
+    return orderItems.find((item) => item.product_id === productId)
+  }
+
   const handleAddProduct = async (product: ProductItemResType) => {
     if (!orderId) return
 
-    await createOrderItemMutation.mutateAsync({
-      order_id: orderId,
-      product_id: product.Id,
-      product_name: product.name,
-      quantity: 1,
-      cost: product.cost,
-      price: product.price,
-      cost_total: product.cost * 1,
-      price_total: product.price * 1
-    })
-    toast({
-      description: 'Thêm sản phẩm vào đơn hàng thành công!'
-    })
+    const existingItem = checkProductExists(product.Id, orderItems)
+
+    if (existingItem) {
+      await updateOrderItemMutation.mutateAsync({
+        Id: existingItem.Id,
+        quantity: existingItem.quantity + 1,
+        cost_total: existingItem.cost_total + product.cost,
+        price_total: existingItem.price_total + product.price
+      })
+      toast({
+        description: `Đã cập nhật số lượng sản phẩm ${product.name} trong đơn hàng!`
+      })
+    } else {
+      await createOrderItemMutation.mutateAsync({
+        order_id: orderId,
+        product_id: product.Id,
+        product_name: product.name,
+        quantity: 1,
+        cost: product.cost,
+        price: product.price,
+        cost_total: product.cost * 1,
+        price_total: product.price * 1
+      })
+      toast({
+        description: `Đã thêm sản phẩm ${product.name} vào đơn hàng!`
+      })
+    }
+
     onAddProduct()
     setOpen(false)
   }

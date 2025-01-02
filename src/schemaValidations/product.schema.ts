@@ -6,8 +6,8 @@ export const ProductSchema = z.object({
   price: z.coerce.number().positive(),
   cost: z.coerce.number().positive(),
   image: z.string().optional(),
-  CreatedAt: z.date(),
-  UpdatedAt: z.date()
+  CreatedAt: z.string().datetime({ offset: true }),
+  UpdatedAt: z.string().datetime({ offset: true })
 })
 
 export const ProductRes = ProductSchema

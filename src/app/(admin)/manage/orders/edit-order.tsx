@@ -353,7 +353,7 @@ export default function EditOrder({
                                 <Select
                                   onValueChange={field.onChange}
                                   defaultValue={String(field.value)}
-                                  value={String(field.value)}
+                                  value={String(field.value) ?? OrderStatus.NEW}
                                 >
                                   <FormControl>
                                     <SelectTrigger>

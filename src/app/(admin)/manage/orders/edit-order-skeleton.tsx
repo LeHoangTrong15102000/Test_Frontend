@@ -55,8 +55,9 @@ export default function EditOrderSkeleton() {
           <div key={idx} className='flex gap-4'>
             <Skeleton className='w-[80px] h-[80px] rounded-md' />
             <div className='flex-1 space-y-2'>
-              <Skeleton className='h-4 w-1/3' />
               <Skeleton className='h-4 w-1/2' />
+              <Skeleton className='h-4 w-1/3' />
+              <Skeleton className='h-4 w-1/3' />
             </div>
             <Skeleton className='w-[60px] h-10' />
             <Skeleton className='w-10 h-10' />

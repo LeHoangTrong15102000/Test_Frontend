@@ -14,8 +14,8 @@ export const BaseOrderItemSchema = z.object({
 
 export const OrderItemSchema = BaseOrderItemSchema.extend({
   Id: z.number(),
-  CreatedAt: z.date(),
-  UpdatedAt: z.date()
+  CreatedAt: z.string().datetime({ offset: true }),
+  UpdatedAt: z.string().datetime({ offset: true })
 })
 
 export const OrderItemRes = OrderItemSchema
