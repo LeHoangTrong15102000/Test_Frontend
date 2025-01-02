@@ -19,6 +19,8 @@ import { formatCurrency, formatDateTimeToLocaleString, simpleMatchText } from '@
 import { Input } from '@/components/ui/input'
 import { ProductListResType } from '@/schemaValidations/product.schema'
 import { useGetProductListQuery } from '@/queries/useProduct'
+import { useCreateOrderItemMutation } from '@/queries/useOrderItem'
+import { toast } from '@/components/ui/use-toast'
 
 type ProductItemResType = ProductListResType['list'][0]
 
@@ -76,11 +78,13 @@ export const columns: ColumnDef<ProductItemResType>[] = [
 
 const PAGE_SIZE = 5
 
-export default function DialogAddProduct({ onAddProduct }: { onAddProduct: (product: ProductItemResType) => void }) {
+export default function DialogAddProduct({ onAddProduct, orderId }: { onAddProduct: () => void; orderId: number }) {
   const [open, setOpen] = useState(false)
 
   const productListQuery = useGetProductListQuery()
   const data = productListQuery.data?.payload.list ?? []
+  const createOrderItemMutation = useCreateOrderItemMutation()
+
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
@@ -119,8 +123,23 @@ export default function DialogAddProduct({ onAddProduct }: { onAddProduct: (prod
     })
   }, [table])
 
-  const handleAddProduct = (product: ProductItemResType) => {
-    onAddProduct(product)
+  const handleAddProduct = async (product: ProductItemResType) => {
+    if (!orderId) return
+
+    await createOrderItemMutation.mutateAsync({
+      order_id: orderId,
+      product_id: product.Id,
+      product_name: product.name,
+      quantity: 1,
+      cost: product.cost,
+      price: product.price,
+      cost_total: product.cost * 1,
+      price_total: product.price * 1
+    })
+    toast({
+      description: 'Thêm sản phẩm vào đơn hàng thành công!'
+    })
+    onAddProduct()
     setOpen(false)
   }
 

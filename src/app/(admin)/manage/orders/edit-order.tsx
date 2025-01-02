@@ -35,7 +35,6 @@ import {
   AlertDialogTitle
 } from '@/components/ui/alert-dialog'
 import DialogAddProduct from './dialog-add-product'
-import { Skeleton } from '@/components/ui/skeleton'
 import EditOrderSkeleton from './edit-order-skeleton'
 
 type SelectedOrderItemType = OrderItemListResType['list'][0]
@@ -456,7 +455,12 @@ export default function EditOrder({
                   </div>
                 </div>
               ))}
-              <DialogAddProduct onAddProduct={() => {}} />
+              <DialogAddProduct
+                orderId={id as number}
+                onAddProduct={() => {
+                  console.log('Add Product thành công')
+                }}
+              />
               <DialogFooter>
                 <Button className='w-full justify-between' onClick={handleUpdateOrder}>
                   <span>
