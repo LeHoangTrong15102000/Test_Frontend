@@ -37,7 +37,8 @@ export const columns: ColumnDef<ProductItemResType>[] = [
     ),
     filterFn: (row, columnId, filterValue: string) => {
       if (filterValue === undefined) return true
-      return simpleMatchText(row.original.name + String(row.original.Id), String(filterValue))
+      // + String(row.original.Id)
+      return simpleMatchText(row.original.name, String(filterValue))
     }
   },
   {
