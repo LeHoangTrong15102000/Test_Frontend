@@ -19,11 +19,7 @@ import { formatCurrency, formatDateTimeToLocaleString, simpleMatchText } from '@
 import { Input } from '@/components/ui/input'
 import { ProductListResType } from '@/schemaValidations/product.schema'
 import { useGetProductListQuery } from '@/queries/useProduct'
-import {
-  useCreateOrderItemMutation,
-  useGetOrderItemListQuery,
-  useUpdateOrderItemMutation
-} from '@/queries/useOrderItem'
+import { useCreateOrderItemMutation, useUpdateOrderItemMutation } from '@/queries/useOrderItem'
 import { toast } from '@/components/ui/use-toast'
 import { OrderItemListResType } from '@/schemaValidations/orderItem.schema'
 
@@ -62,15 +58,6 @@ export const columns: ColumnDef<ProductItemResType>[] = [
       return simpleMatchText(String(row.original.cost), String(filterValue))
     }
   },
-  // {
-  //   accessorKey: 'tableNumber',
-  //   header: 'Số bàn',
-  //   cell: ({ row }) => <div className='capitalize'>{row.getValue('tableNumber')}</div>,
-  //   filterFn: (row, columnId, filterValue: string) => {
-  //     if (filterValue === undefined) return true
-  //     return simpleMatchText(String(row.original.tableNumber), String(filterValue))
-  //   }
-  // },
   {
     accessorKey: 'CreatedAt',
     header: () => <div>Ngày tạo</div>,
@@ -84,16 +71,26 @@ export const columns: ColumnDef<ProductItemResType>[] = [
 
 const PAGE_SIZE = 5
 
-export default function DialogAddProduct({ onAddProduct, orderId }: { onAddProduct: () => void; orderId: number }) {
+export default function DialogAddProduct({
+  onAddProduct,
+  orderId,
+  setSelectedOrderItems,
+  selectedOrderItems
+}: {
+  onAddProduct: () => void
+  orderId: number
+  setSelectedOrderItems: React.Dispatch<React.SetStateAction<OrderItemType[]>>
+  selectedOrderItems: OrderItemType[]
+}) {
   const [open, setOpen] = useState(false)
 
   const productListQuery = useGetProductListQuery()
   const data = productListQuery.data?.payload.list ?? []
-  const { data: orderItemList, isPending: orderItemListPending } = useGetOrderItemListQuery({
-    enabled: Boolean(orderId),
-    orderId: orderId
-  })
-  const orderItems = useMemo(() => orderItemList?.payload.list ?? [], [orderItemList])
+  // const { data: orderItemList, isPending: orderItemListPending } = useGetOrderItemListQuery({
+  //   enabled: Boolean(orderId),
+  //   orderId: orderId
+  // })
+  // const orderItems = useMemo(() => orderItemList?.payload.list ?? [], [orderItemList])
 
   const createOrderItemMutation = useCreateOrderItemMutation()
   const updateOrderItemMutation = useUpdateOrderItemMutation()
@@ -143,14 +140,28 @@ export default function DialogAddProduct({ onAddProduct, orderId }: { onAddProdu
   const handleAddProduct = async (product: ProductItemResType) => {
     if (!orderId) return
 
-    const existingItem = checkProductExists(product.Id, orderItems)
+    const existingItem = checkProductExists(product.Id, selectedOrderItems)
 
     if (existingItem) {
-      await updateOrderItemMutation.mutateAsync({
-        Id: existingItem.Id,
-        quantity: existingItem.quantity + 1,
-        cost_total: existingItem.cost_total + product.cost,
-        price_total: existingItem.price_total + product.price
+      // await updateOrderItemMutation.mutateAsync({
+      //   Id: existingItem.Id,
+      //   quantity: existingItem.quantity + 1,
+      //   cost_total: existingItem.cost_total + product.cost,
+      //   price_total: existingItem.price_total + product.price
+      // })
+      setSelectedOrderItems((prevOrderItems: OrderItemType[]) => {
+        const orderItemIndex = prevOrderItems.findIndex((item) => item.Id === existingItem.Id)
+        if (orderItemIndex === -1) return prevOrderItems
+
+        const newOrderItems = [...prevOrderItems]
+        newOrderItems[orderItemIndex] = {
+          ...newOrderItems[orderItemIndex],
+          quantity: existingItem.quantity + 1,
+          cost_total: existingItem.cost_total + product.cost,
+          price_total: existingItem.price
+        }
+
+        return newOrderItems
       })
       toast({
         description: `Đã cập nhật số lượng sản phẩm ${product.name} trong đơn hàng!`

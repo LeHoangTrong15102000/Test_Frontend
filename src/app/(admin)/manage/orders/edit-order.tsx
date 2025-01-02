@@ -460,6 +460,8 @@ export default function EditOrder({
                 onAddProduct={() => {
                   console.log('Add Product thành công')
                 }}
+                selectedOrderItems={selectedOrderItems}
+                setSelectedOrderItems={setSelectedOrderItems}
               />
               <DialogFooter>
                 <Button className='w-full justify-between' onClick={handleUpdateOrder}>
